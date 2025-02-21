@@ -1,0 +1,57 @@
+<html>
+  <head>
+    <style>
+      #goalMet {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Hello everyone! Please donate to my address!</h1>
+    <p>Address: bc1q9rv4yqmjvul359p3cy2uu8d2606thqagdh4huw</p>
+    <p id="goal">Bitcoin donation goal:</p>
+    <p id="received">Bitcoin received so far:</p>
+    <h2 id="goalMet">Goal met!</h2>
+    <div id="qr"></div>
+
+    <script src="./qrcode.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+      new QRCode(
+        document.getElementById("qr"),
+        "bc1q9rv4yqmjvul359p3cy2uu8d2606thqagdh4huw"
+      );
+
+      async function getBalanceFromBlockExplorer() {
+        const goalInBitcoin = .03954599;
+
+        // Make request to blockstream esplora
+        let resp = await fetch(
+          "https://blockstream.info/api/address/bc1q9rv4yqmjvul359p3cy2uu8d2606thqagdh4huw"
+        );
+        let parsed = await resp.json();
+
+        // Calculate balance
+        let { funded_txo_sum, spent_txo_sum } = parsed.chain_stats;
+        let balanceInSats = funded_txo_sum - spent_txo_sum;
+        let balanceInBitcoin = balanceInSats / 100_000_000;
+
+        // Display our balance
+        let receivedElement = document.getElementById("received");
+        receivedElement.innerHTML =
+          receivedElement.innerHTML + " " + balanceInBitcoin;
+
+        // Display goal
+        let goalElement = document.getElementById("goal");
+        goalElement.innerHTML = goalElement.innerHTML + " " + goalInBitcoin;
+
+        // Display goal met
+        if (balanceInBitcoin >= goalInBitcoin) {
+          let goalMetElement = document.getElementById("goalMet");
+          goalMetElement.style.display = "block";
+        }
+      }
+
+      getBalanceFromBlockExplorer();
+    </script>
+  </body>
+</html>
